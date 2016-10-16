@@ -1,18 +1,25 @@
 import java.net.*;
 import java.io.*;
  
-public class Medium
+public class Medium extends Thread
 {
-   public static void main(String [] args)
+	private ServerSocket serverSocket;
+	
+   public Medium(int port) throws IOException
    {
-      String serverName = args[0];
-      int port = Integer.parseInt(args[1]);
-
-      try
+      serverSocket = new ServerSocket(port);
+      //serverSocket.setSoTimeout(10000);
+   }
+   
+   public void run()
+   {
+	  while(true)
       {
-		  //创建一个TCP服务器，接收来自Android设备的信息。--------------------------------
+         try
+         {
+          //创建一个TCP服务器，接收来自Android设备的信息。--------------------------------
 		  //1.创建一个服务器端Socket，即ServerSocket，指定绑定的端口，并监听此端口
-		  ServerSocket serverSocket = new ServerSocket(5001);
+		  //ServerSocket serverSocket = new ServerSocket(5001);
 		  InetAddress address = InetAddress.getLocalHost();
 		  String ip = address.getHostAddress();
 		  Socket socket = null;
@@ -42,8 +49,10 @@ public class Medium
 		  
 		  //建立TCP客户端，发送信息到VMware。--------------------------------------------------
 		  //建立TCP客户端
-          System.out.println("Connecting to " + serverName + " on port " + port);
-          Socket client = new Socket(serverName, port);
+          //System.out.println("Connecting to " + serverName + " on port " + port);
+          //Socket client = new Socket(serverName, port);
+		  System.out.println("Connecting to " + "192.168.3.7" + " on port " + 5001);
+		  Socket client = new Socket("192.168.3.7", 5001);
 		  //输出
 		  OutputStream outToServer = client.getOutputStream();
           DataOutputStream out = new DataOutputStream(outToServer);
@@ -54,16 +63,36 @@ public class Medium
 	   	  out.write(info_ok.getBytes("UTF-8"));
 		  System.out.println("Messages have been sent!");
 		  //输入
-		  InputStream inFromServer = client.getInputStream();
+/* 		  InputStream inFromServer = client.getInputStream();
 		  DataInputStream in = new DataInputStream(inFromServer);
 		  byte[] by = new byte[1024];
 		  in.read(by);
 		  String str1 = new String(by);
-		  System.out.println("Get some messages: " + str1);
+		  System.out.println("Get some messages: " + str1); */
 		  //关闭
 		  client.close();
-		  //------------------------------------------------------------------------------------
-		  
+		  //------------------------------------------------------------------------------------ 
+         }catch(SocketTimeoutException s)
+         {
+            System.out.println("Socket timed out!");
+            break;
+         }catch(IOException e)
+         {
+            e.printStackTrace();
+            break;
+         }
+      }	   
+   }
+   
+   public static void main(String [] args)
+   {
+      /* String serverName = args[0];
+      int port = Integer.parseInt(args[1]); */
+
+      try
+      {
+		 Thread t = new Medium(5001);
+         t.start();
       }catch(IOException e)
       {
 		  e.printStackTrace();
